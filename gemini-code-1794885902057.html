@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI & Macro Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --smokey-black: #100C08;
+      --slate-card: rgba(30, 41, 59, 0.75);
+      --ash: #B2BEB5;
+      --ash-light: #E5E7EB;
+      --seafoam: #9FE2BF;
+      --jade: #00A86B;
+      --bermuda: #78DBE2;
+      --olive: #708238;
+      --olive-hover: #5B6B2D;
+      --apple: #8DB600;
+      --moss: #8A9A5B;
+      --clay: #B66A50;
+      --puce: #CC8899;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Noto Sans Devanagari', sans-serif; }
+    body { background-color: var(--smokey-black); color: var(--ash-light); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 480px; background: var(--slate-card); backdrop-filter: blur(16px); border: 1px solid rgba(120, 219, 226, 0.25); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .title { color: var(--seafoam); font-size: 1.35rem; font-weight: 700; }
+    .toggle-btn { background: rgba(16, 12, 8, 0.6); border: 1px solid var(--bermuda); color: var(--bermuda); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; color: var(--ash); font-size: 0.85rem; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px 12px; background: rgba(16, 12, 8, 0.7); border: 1px solid var(--bermuda); border-radius: 10px; color: #fff; font-size: 0.95rem; outline: none; }
+    .row { display: flex; gap: 10px; }
+    .col { flex: 1; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-calc { flex: 2; background: var(--olive); color: #fff; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-calc:hover { background: var(--olive-hover); }
+    .btn-reset { flex: 1; background: transparent; border: 1px solid var(--puce); color: var(--puce); padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    .results { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); display: none; }
+    .bmi-card { text-align: center; background: rgba(0,0,0,0.4); padding: 16px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--jade); }
+    .bmi-score { font-size: 2.4rem; font-weight: 800; color: var(--bermuda); }
+    .bmi-status { display: inline-block; padding: 4px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; margin-top: 6px; }
+    .macros-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+    .macro-box { background: rgba(0,0,0,0.4); padding: 12px 8px; border-radius: 10px; text-align: center; border-top: 3px solid var(--olive); }
+    .macro-val { font-size: 1.1rem; font-weight: 700; color: var(--seafoam); }
+    .macro-lbl { font-size: 0.75rem; color: var(--ash); margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h2 class="title" id="app-title">BMI & Macros</h2>
+    <div>
+      <button class="toggle-btn" id="lang-btn" onclick="toggleLang()">EN / HI</button>
+      <button class="toggle-btn" id="unit-btn" onclick="toggleUnit()">Metric</button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label id="lbl-gender">Gender</label>
+    <select id="gender">
+      <option value="male">Male / पुरुष</option>
+      <option value="female">Female / महिला</option>
+    </select>
+  </div>
+
+  <div class="row form-group">
+    <div class="col">
+      <label id="lbl-age">Age</label>
+      <input type="number" id="age" value="25">
+    </div>
+    <div class="col">
+      <label id="lbl-weight">Weight (kg)</label>
+      <input type="number" id="weight" value="70">
+    </div>
+    <div class="col">
+      <label id="lbl-height">Height (cm)</label>
+      <input type="number" id="height" value="175">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label id="lbl-goal">Goal</label>
+    <select id="goal">
+      <option value="maintain">Maintain Weight</option>
+      <option value="loss">Weight Loss (-500 kcal)</option>
+      <option value="gain">Weight Gain (+500 kcal)</option>
+    </select>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-calc" onclick="calculate()" id="btn-calc">Calculate</button>
+    <button class="btn-reset" onclick="resetForm()" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="results" id="results">
+    <div class="bmi-card">
+      <div class="bmi-score" id="res-bmi">22.8</div>
+      <div class="bmi-status" id="res-status">Normal</div>
+      <p style="font-size: 0.85rem; color: var(--ash); margin-top: 8px;" id="res-ideal">Ideal Weight: 57 - 76 kg</p>
+    </div>
+
+    <div class="macros-grid">
+      <div class="macro-box" style="border-color: var(--apple)">
+        <div class="macro-val" id="res-prot">140g</div>
+        <div class="macro-lbl" id="lbl-prot">Protein</div>
+      </div>
+      <div class="macro-box" style="border-color: var(--bermuda)">
+        <div class="macro-val" id="res-carbs">250g</div>
+        <div class="macro-lbl" id="lbl-carbs">Carbs</div>
+      </div>
+      <div class="macro-box" style="border-color: var(--clay)">
+        <div class="macro-val" id="res-fats">60g</div>
+        <div class="macro-lbl" id="lbl-fats">Fats</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let isMetric = true;
+  let isEnglish = true;
+
+  function calculate() {
+    let w = parseFloat(document.getElementById('weight').value);
+    let h = parseFloat(document.getElementById('height').value);
+    let age = parseInt(document.getElementById('age').value) || 25;
+    let gender = document.getElementById('gender').value;
+    let goal = document.getElementById('goal').value;
+
+    if(!isMetric) {
+      w = w * 0.453592;
+      h = h * 2.54;
+    }
+
+    if(!w || !h) return;
+
+    let hm = h / 100;
+    let bmi = (w / (hm * hm)).toFixed(1);
+
+    document.getElementById('res-bmi').innerText = bmi;
+    let status = document.getElementById('res-status');
+
+    if(bmi < 18.5) {
+      status.innerText = isEnglish ? "Underweight" : "कम वज़न";
+      status.style.backgroundColor = "var(--bermuda)";
+      status.style.color = "#100C08";
+    } else if(bmi < 25)
